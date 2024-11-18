@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users</title>
+</head>
+<body>
+<h1>Users</h1>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Login</th>
+        <th>Password</th>
+        <th>Admin Name</th>
+        <th>Admin Password</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Выводим список пользователей -->
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.login}"></td>
+        <td th:text="${user.password}"></td>
+        <td th:text="${user.adminName}"></td>
+        <td th:text="${user.adminPassword}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

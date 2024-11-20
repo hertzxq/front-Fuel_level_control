@@ -22,13 +22,17 @@ public class EmployeeController {
     public Map<String, Object> addEmployee(@RequestBody Map<String, String> employeeData) {
         // Получаем данные из запроса
         String login = employeeData.get("login");
-        String password = employeeData.get("password");
+        String rawPassword = employeeData.get("password");
         String job = employeeData.get("job");
+
+        // Хэшируем пароль перед сохранением
+        String hashedPassword = PasswordUtils.hashPassword(rawPassword);
 
         // Отладочные сообщения
         System.out.println("Данные, полученные с фронтенда:");
         System.out.println("Login: " + login);
-        System.out.println("Password: " + password);
+        System.out.println("Raw Password: " + rawPassword);
+        System.out.println("Hashed Password: " + hashedPassword);
         System.out.println("Job: " + job);
 
         Map<String, Object> response = new HashMap<>();
@@ -38,7 +42,7 @@ public class EmployeeController {
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, login);
-            statement.setString(2, password);
+            statement.setString(2, hashedPassword); // Сохраняем хэшированный пароль
             statement.setString(3, job);
 
             int rowsInserted = statement.executeUpdate();

@@ -20,47 +20,71 @@ public class AuthController {
 
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> loginRequest) {
-        String login = loginRequest.get("login");
-        String password = loginRequest.get("password");
+        String login = loginRequest.get("login").trim();
+        String rawPassword = loginRequest.get("password").trim(); // Введённый пароль
+        String hashedPassword = PasswordUtils.hashPassword(rawPassword); // Хэшируем введённый пароль
+
+        System.out.println("Login attempt:");
+        System.out.println("Login: " + login);
+        System.out.println("Raw Password: " + rawPassword);
+        System.out.println("Hashed Password: " + hashedPassword);
 
         Map<String, Object> response = new HashMap<>();
         try {
-            // Проверяем, есть ли пользователь в таблице users
-            String userQuery = "SELECT * FROM public.users WHERE login = ? AND password = ?";
             var connection = dbConnection.connect();
-            var userStatement = connection.prepareStatement(userQuery);
-            userStatement.setString(1, login);
-            userStatement.setString(2, password);
-            ResultSet userResult = userStatement.executeQuery();
 
-            if (userResult.next()) {
-                // Пользователь найден в таблице users
-                response.put("status", "success");
-                response.put("role", "user");
-                response.put("job", userResult.getString("job"));
-            } else {
-                String adminQuery = "SELECT * FROM public.admins WHERE login = ? AND password = ?";
-                var adminStatement = connection.prepareStatement(adminQuery);
-                adminStatement.setString(1, login);
-                adminStatement.setString(2, password);
-                ResultSet adminResult = adminStatement.executeQuery();
-
-                if (adminResult.next()) {
-                    // Администратор найден в таблице admins
-                    response.put("status", "success");
-                    response.put("role", "admin");
-                } else {
-                    // Если ни в одной таблице пользователь не найден
-                    response.put("status", "error");
-                    response.put("message", "Invalid login or password");
-                }
+            // Проверяем таблицу admins
+            if (authenticateUser(connection, "public.admins", login, hashedPassword, "admin", response)) {
+                return response;
             }
+
+            // Проверяем таблицу users
+            if (authenticateUser(connection, "public.users", login, hashedPassword, "user", response)) {
+                return response;
+            }
+
+            // Если пользователь не найден ни в одной таблице
+            System.out.println("User not found in both tables.");
+            response.put("status", "error");
+            response.put("message", "Invalid login or password");
+
         } catch (SQLException e) {
-            // Обработка ошибок базы данных
+            System.err.println("Database error: " + e.getMessage());
             response.put("status", "error");
             response.put("message", "Database error: " + e.getMessage());
         }
 
         return response;
+    }
+
+    private boolean authenticateUser(
+            java.sql.Connection connection,
+            String tableName,
+            String login,
+            String hashedPassword,
+            String role,
+            Map<String, Object> response
+    ) throws SQLException {
+        String query = "SELECT * FROM " + tableName + " WHERE login = ?";
+        var statement = connection.prepareStatement(query);
+        statement.setString(1, login);
+        ResultSet resultSet = statement.executeQuery();
+
+        if (resultSet.next()) {
+            String storedPassword = resultSet.getString("password");
+            System.out.println("Stored Password in " + tableName + ": " + storedPassword);
+
+            if (storedPassword.equals(hashedPassword)) {
+                System.out.println(role + " authentication successful.");
+                response.put("status", "success");
+                response.put("role", role);
+                return true;
+            } else {
+                System.out.println("Password mismatch for " + role + ".");
+            }
+        } else {
+            System.out.println(role + " not found in " + tableName + ".");
+        }
+        return false;
     }
 }

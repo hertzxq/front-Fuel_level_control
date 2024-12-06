@@ -20,50 +20,42 @@ public class EmployeeController {
 
     @PostMapping
     public Map<String, Object> addEmployee(@RequestBody Map<String, String> employeeData) {
-        // Получаем данные из запроса
-        String login = employeeData.get("login");
-        String rawPassword = employeeData.get("password");
-        String job = employeeData.get("job");
+        String login = employeeData.get("login").trim();
+        String rawPassword = employeeData.get("password").trim();
+        String job = employeeData.get("job").trim();
 
-        // Хэшируем пароль перед сохранением
-        String hashedPassword = PasswordUtils.hashPassword(rawPassword);
-
-        // Отладочные сообщения
-        System.out.println("Данные, полученные с фронтенда:");
-        System.out.println("Login: " + login);
-        System.out.println("Raw Password: " + rawPassword);
-        System.out.println("Hashed Password: " + hashedPassword);
-        System.out.println("Job: " + job);
+        // Генерируем соль и хэшируем пароль
+        String salt = PasswordUtils.generateSalt();
+        String hashedPassword = PasswordUtils.hashPassword(rawPassword, salt);
 
         Map<String, Object> response = new HashMap<>();
-        String query = "INSERT INTO public.users (login, password, job) VALUES (?, ?, ?)";
+        String query = "INSERT INTO public.users (login, password, salt, job) VALUES (?, ?, ?, ?)";
 
         try (Connection connection = dbConnection.connect();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, login);
-            statement.setString(2, hashedPassword); // Сохраняем хэшированный пароль
-            statement.setString(3, job);
+            statement.setString(2, hashedPassword);
+            statement.setString(3, salt); // Сохраняем соль
+            statement.setString(4, job);
 
             int rowsInserted = statement.executeUpdate();
 
             if (rowsInserted > 0) {
-                System.out.println("Успешно добавлено " + rowsInserted + " строк.");
                 connection.commit();
                 response.put("status", "success");
                 response.put("message", "Employee added successfully");
             } else {
-                System.out.println("Данные не добавлены.");
                 response.put("status", "error");
                 response.put("message", "Failed to add employee");
             }
 
         } catch (SQLException e) {
-            System.err.println("Ошибка SQL-запроса: " + e.getMessage());
             response.put("status", "error");
             response.put("message", "Database error: " + e.getMessage());
         }
 
         return response;
     }
+
 }

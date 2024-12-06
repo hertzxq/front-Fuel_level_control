@@ -1,0 +1,30 @@
+package org.sasha;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api")
+public class FuelRequestController {
+
+    @Autowired
+    private EmailService emailService;
+
+    @PostMapping("/fuel-request")
+    public String handleFuelRequest(@RequestBody FuelRequestDto fuelRequest) {
+        String fuelAmount = fuelRequest.getFuelAmount();
+        String email = fuelRequest.getEmail();
+
+        if (fuelAmount == null || email == null) {
+            throw new IllegalArgumentException("Поля fuelAmount и email обязательны.");
+        }
+
+        emailService.sendEmail(
+                email,
+                "Запрос на поставку топлива",
+                "Запрос на " + fuelAmount + " литров топлива был успешно отправлен."
+        );
+
+        return "Запрос обработан.";
+    }
+}

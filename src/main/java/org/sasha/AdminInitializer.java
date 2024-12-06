@@ -22,37 +22,42 @@ public class AdminInitializer implements CommandLineRunner {
         String id = "0";
         String defaultAdminLogin = "admin";
         String defaultAdminPassword = "admin";
-        String hashedPassword = PasswordUtils.hashPassword(defaultAdminPassword);
 
-        System.out.println("Initializing default admin...");
+        // Генерация соли и хэширование пароля
+        String salt = PasswordUtils.generateSalt();
+        String hashedPassword = PasswordUtils.hashPassword(defaultAdminPassword, salt);
+
         String checkAdminQuery = "SELECT COUNT(*) FROM public.admins WHERE login = ?";
-        String insertAdminQuery = "INSERT INTO public.admins (id, login, password) VALUES (?, ?, ?)";
+        String insertAdminQuery = "INSERT INTO public.admins (id, login, password, salt) VALUES (?, ?, ?, ?)";
+        String updateAdminQuery = "UPDATE public.admins SET password = ?, salt = ? WHERE login = ?";
 
         try (Connection connection = dbConnection.connect()) {
-            // Check if the admin already exists
             PreparedStatement checkStatement = connection.prepareStatement(checkAdminQuery);
             checkStatement.setString(1, defaultAdminLogin);
             ResultSet resultSet = checkStatement.executeQuery();
 
             if (resultSet.next() && resultSet.getInt(1) == 0) {
+                // Если админ не существует, добавляем нового
                 PreparedStatement insertStatement = connection.prepareStatement(insertAdminQuery);
                 insertStatement.setString(1, id);
                 insertStatement.setString(2, defaultAdminLogin);
                 insertStatement.setString(3, hashedPassword);
-                int rowsInserted = insertStatement.executeUpdate();
-
-                if (rowsInserted > 0) {
-                    System.out.println("Default admin created successfully.");
-                    connection.commit();
-                } else {
-                    System.out.println("Failed to create default admin.");
-                }
+                insertStatement.setString(4, salt);
+                insertStatement.executeUpdate();
+                connection.commit();
+                System.out.println("Admin user created with salt.");
             } else {
-                System.out.println("Default admin already exists.");
+                // Если админ уже существует, обновляем соль и пароль
+                PreparedStatement updateStatement = connection.prepareStatement(updateAdminQuery);
+                updateStatement.setString(1, hashedPassword);
+                updateStatement.setString(2, salt);
+                updateStatement.setString(3, defaultAdminLogin);
+                updateStatement.executeUpdate();
+                connection.commit();
+                System.out.println("Admin user updated with new salt.");
             }
-
         } catch (SQLException e) {
-            System.err.println("Database error while initializing default admin: " + e.getMessage());
+            System.err.println("Database error: " + e.getMessage());
         }
     }
 }

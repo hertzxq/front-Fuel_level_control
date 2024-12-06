@@ -5,12 +5,16 @@ public class UserDto {
     private String login;
     private String password;
     private String job;
+    private String fuelAmount;
+    private String email;
 
-    public UserDto(String id, String login, String password, String job) {
+    public UserDto(String id, String login, String password, String job, String fuelAmount, String email) {
         this.id = id;
         this.login = login;
         this.password = password;
         this.job = job;
+        this.fuelAmount = fuelAmount;
+        this.email = email;
     }
 
     public String getId() {
@@ -44,5 +48,19 @@ public class UserDto {
     public void setJob(String job) {
         this.job = job;
     }
+    public String getFuelAmount() {
+        return fuelAmount;
+    }
 
+    public void setFuelAmount(String fuelAmount) {
+        this.fuelAmount = fuelAmount;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

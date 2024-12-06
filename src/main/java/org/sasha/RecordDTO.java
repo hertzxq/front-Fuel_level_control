@@ -1,23 +1,23 @@
 package org.sasha;
 
-public class UserDto {
-    private String id;
+public class RecordDTO {
+    private Long id;
     private String login;
-    private String password;
     private String job;
 
-    public UserDto(String id, String login, String password, String job) {
+    // Конструктор
+    public RecordDTO(Long id, String login, String job) {
         this.id = id;
         this.login = login;
-        this.password = password;
         this.job = job;
     }
 
-    public String getId() {
+    // Геттеры и сеттеры
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -29,14 +29,6 @@ public class UserDto {
         this.login = login;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getJob() {
         return job;
     }
@@ -44,5 +36,4 @@ public class UserDto {
     public void setJob(String job) {
         this.job = job;
     }
-
 }

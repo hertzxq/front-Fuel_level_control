@@ -1,6 +1,7 @@
-package org.sasha;
+package org.sasha.auth;
 
-import org.sasha.DbConnectionImpl;
+import org.sasha.db.DbConnectionImpl;
+import org.sasha.dependencies.PasswordUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;

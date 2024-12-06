@@ -1,4 +1,4 @@
-package org.sasha;
+package org.sasha.db;
 
 
 import java.sql.ResultSet;

@@ -1,5 +1,7 @@
-package org.sasha;
+package org.sasha.auth;
 
+import org.sasha.db.DbConnectionImpl;
+import org.sasha.dependencies.PasswordUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
